@@ -10,15 +10,11 @@ module Register_File (
 
   logic [31:0] rf [31:0];
 
-  assign read_data = re ? rf[addr] : 32'd0;
-
   always_ff @(posedge clk, negedge reset_n) begin
-    if (~reset_n) begin
-      for (int i = 0; i < 32; i++) begin
-        rf[i] <= 32'd0; 
-      end
-    end else if (we) begin
+    if (we) begin
 	    rf[addr] <= write_data;
+    end else if (re) begin
+      read_data <= rf[addr]; // Current module will not pass testbench, read data is a cycle off.
     end
   end
 
@@ -92,7 +88,7 @@ module AXI_Lite_Slave(
 		.read_data(rdata)
 	);
   
-  enum logic [3:0] { IDLE, READ_ADDR_READY, WRITE_ADDR_READY_1, WRITE_DATA_READY_1, WRITE_READY_1} currState, nextState;
+  enum logic [3:0] { IDLE, READ_ADDR_READY, WRITE_ADDR_READY_1, WRITE_DATA_READY_1, WRITE_READY_1 } currState, nextState;
 
   always_ff @(posedge aclk, negedge aresetn) begin 
     if (~aresetn) begin
